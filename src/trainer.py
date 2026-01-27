@@ -10,6 +10,9 @@ from typing import Tuple
 import numpy as np
 from sklearn.metrics import accuracy_score
 import wandb
+from typing import Dict
+from transformers.trainer_utils import TrainOutput
+from datetime import datetime
 
 
 class ModelTrainer:
@@ -37,7 +40,7 @@ class ModelTrainer:
             report_to="wandb",
         )
 
-    def compute_metrix(self, eval_pred: Tuple):
+    def compute_metrix(self, eval_pred: Tuple) -> Dict[str, float]:
         logits, lable = eval_pred
         prediction = np.argmax(logits, axis=-1)
         accuracy = accuracy_score(lable, prediction)
@@ -54,10 +57,10 @@ class ModelTrainer:
             compute_metrics=self.compute_metrix,
         )
 
-    def train(self):
+    def train(self) -> TrainOutput:
         wandb.init(
-            project="distilbert-ag-news",
-            name="distilbert-base-uncased",
+            project=Config.PROJECT,
+            name=f"{Config.NAME}-{datetime.now().strftime('%Y%m%d-%H%M%S')}",
             config={
                 "epochs": Config.NUM_EPOCH,
                 "batch_size": Config.BATCH_SIZE,
