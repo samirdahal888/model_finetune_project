@@ -9,6 +9,7 @@ from config.config import Config
 from typing import Tuple
 import numpy as np
 from sklearn.metrics import accuracy_score
+import wandb
 
 
 class ModelTrainer:
@@ -33,6 +34,7 @@ class ModelTrainer:
             eval_strategy="epoch",
             save_strategy="epoch",
             metric_for_best_model="accuracy",
+            report_to="wandb",
         )
 
     def compute_metrix(self, eval_pred: Tuple):
@@ -53,10 +55,20 @@ class ModelTrainer:
         )
 
     def train(self):
+        wandb.init(
+            project="distilbert-ag-news",
+            name="distilbert-base-uncased",
+            config={
+                "epochs": Config.NUM_EPOCH,
+                "batch_size": Config.BATCH_SIZE,
+                "learning_rate": Config.LEARNING_RATE,
+            },
+        )
         self.trainer = self.create_trainer()
 
         train_result = self.trainer.train()
         self.save_model()
+        wandb.finish()
         return train_result
 
     def save_model(self) -> None:
