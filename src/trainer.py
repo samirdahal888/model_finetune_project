@@ -13,6 +13,9 @@ import wandb
 from typing import Dict
 from transformers.trainer_utils import TrainOutput
 from datetime import datetime
+from logger.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 class ModelTrainer:
@@ -28,6 +31,9 @@ class ModelTrainer:
         self.trainer = None
 
     def create_training_arguments(self) -> TrainingArguments:
+        logger.info(
+            f"Setting the model training arguments with epoch:{Config.NUM_EPOCH} ,LearningRate: {Config.LEARNING_RATE} , Batchsize: {Config.BATCH_SIZE}"
+        )
         return TrainingArguments(
             num_train_epochs=Config.NUM_EPOCH,
             output_dir=str(Config.FINE_TUNE_MODEL_PATH),
@@ -47,6 +53,7 @@ class ModelTrainer:
         return {"accuracy": accuracy}
 
     def create_trainer(self) -> Trainer:
+        logger.info("Creating huggingface trainer")
         training_args = self.create_training_arguments()
 
         return Trainer(
@@ -58,6 +65,7 @@ class ModelTrainer:
         )
 
     def train(self) -> TrainOutput:
+        logger.info("Straing Training process")
         wandb.init(
             project=Config.PROJECT,
             name=f"{Config.NAME}-{datetime.now().strftime('%Y%m%d-%H%M%S')}",
@@ -67,15 +75,21 @@ class ModelTrainer:
                 "learning_rate": Config.LEARNING_RATE,
             },
         )
+        logger.info("Weight and bias initialized ")
         self.trainer = self.create_trainer()
+        logger.info("Trainer initialized starting training ")
 
         train_result = self.trainer.train()
+        logger.info("Training completed")
         self.save_model()
         wandb.finish()
         return train_result
 
     def save_model(self) -> None:
         """Save the trained model and tokenizer."""
+        logger.info(
+            f"Saving the model and tokenizer into {Config.FINE_TUNE_MODEL_PATH}"
+        )
         self.trainer.save_model()
         self.tokenizer.save_pretrained(str(Config.FINE_TUNE_MODEL_PATH))
-        print(f"Model saved to: {Config.FINE_TUNE_MODEL_PATH}")
+        logger.info(f"Model saved to: {Config.FINE_TUNE_MODEL_PATH}")
