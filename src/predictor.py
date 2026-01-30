@@ -21,17 +21,22 @@ class PredictionResult:
         return {
             "text": self.text[:100] + "..." if len(self.text) > 100 else self.text,
             "predicted_label": self.predicted_label,
+            "predicted_id": self.predicted_id,
             "confidence": self.confidence,
             "probabilities": self.probabilities,
         }
 
 
 class Predictor:
+    """Handles predictions using the fine-tuned classification model."""
+
     def __init__(self, model_path: str = None):
         self.model_manager = ModelManager()
         self.model, self.tokenizer = self.model_manager.load_model(model_path)
 
     def tokenize(self, text: str) -> Dict[str, torch.Tensor]:
+        """Tokenize input text for model inference."""
+
         logger.debug(f"Tokenizer input text length = {len(text)} ")
         return self.tokenizer(
             text,
@@ -42,11 +47,22 @@ class Predictor:
         )
 
     def compute_probabilities(self, logits: torch.Tensor) -> Dict[str, float]:
+        """Convert model logits to class probabilities."""
+
         logger.debug("computing softmax probability")
         probs = softmax(logits, dim=-1).squeeze().tolist()
         return {label: round(prob, 4) for label, prob in zip(Config.LABEL_NAME, probs)}
 
     def predict(self, text: str):
+        """
+        Classify a single text input.
+
+        Args:
+            text: The news article text to classify.
+
+        Returns:
+            Dictionary containing prediction results.
+        """
         logger.info("Running prediction")
         tokens = self.tokenize(text)
         tokens = {key: val.to(self.model_manager.device) for key, val in tokens.items()}

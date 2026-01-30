@@ -19,6 +19,16 @@ logger = get_logger(__name__)
 
 
 class ModelTrainer:
+    """
+    Orchestrates the model training process.
+
+    Responsibilities:
+        - Configure training arguments
+        - Execute training loop
+        - Evaluate model performance
+        - Handle model checkpointing
+    """
+
     def __init__(
         self,
         model: PreTrainedModel,
@@ -31,6 +41,12 @@ class ModelTrainer:
         self.trainer = None
 
     def create_training_arguments(self) -> TrainingArguments:
+        """
+        Configure training hyperparameters and settings.
+
+        Returns:
+            TrainingArguments instance.
+        """
         logger.info(
             f"Setting the model training arguments with epoch:{Config.NUM_EPOCH} ,LearningRate: {Config.LEARNING_RATE} , Batchsize: {Config.BATCH_SIZE}"
         )
@@ -47,12 +63,27 @@ class ModelTrainer:
         )
 
     def compute_metrix(self, eval_pred: Tuple) -> Dict[str, float]:
+        """
+        Calculate evaluation metrics from predictions.
+
+        Args:
+            eval_pred: Tuple of (logits, labels) from evaluation.
+
+        Returns:
+            Dictionary of computed metrics.
+        """
         logits, lable = eval_pred
         prediction = np.argmax(logits, axis=-1)
         accuracy = accuracy_score(lable, prediction)
         return {"accuracy": accuracy}
 
     def create_trainer(self) -> Trainer:
+        """
+        Create and configure the Hugging Face Trainer.
+
+        Returns:
+            Configured Trainer instance.
+        """
         logger.info("Creating huggingface trainer")
         training_args = self.create_training_arguments()
 
@@ -65,6 +96,12 @@ class ModelTrainer:
         )
 
     def train(self) -> TrainOutput:
+        """
+        Execute the training process.
+
+        Returns:
+            Training results containing loss and metrics history.
+        """
         logger.info("Straing Training process")
         wandb.init(
             project=Config.PROJECT,
