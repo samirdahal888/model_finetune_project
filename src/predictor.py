@@ -4,6 +4,9 @@ from typing import Dict
 import torch
 from config.config import Config
 from torch.nn.functional import softmax
+from logger.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 @dataclass
@@ -19,6 +22,7 @@ class PredictionResult:
             "text": self.text[:100] + "..." if len(self.text) > 100 else self.text,
             "predicted_label": self.predicted_label,
             "confidence": self.confidence,
+            "predicted_id": self.predicted_id,
             "probabilities": self.probabilities,
         }
 
@@ -29,6 +33,7 @@ class Predictor:
         self.model, self.tokenizer = self.model_manager.load_model(model_path)
 
     def tokenize(self, text: str) -> Dict[str, torch.Tensor]:
+        logger.debug(f"Tokenizer input text length = {len(text)} ")
         return self.tokenizer(
             text,
             truncation=True,
@@ -38,12 +43,15 @@ class Predictor:
         )
 
     def compute_probabilities(self, logits: torch.Tensor) -> Dict[str, float]:
+        logger.debug("computing softmax probability")
         probs = softmax(logits, dim=-1).squeeze().tolist()
         return {label: round(prob, 4) for label, prob in zip(Config.LABEL_NAME, probs)}
 
     def predict(self, text: str):
+        logger.info("Running prediction")
         tokens = self.tokenize(text)
         tokens = {key: val.to(self.model_manager.device) for key, val in tokens.items()}
+        logger.debug("Input moved to device: %s", self.model_manager.device)
 
         with torch.no_grad():
             output = self.model(**tokens)
@@ -52,11 +60,19 @@ class Predictor:
         predicted_id = torch.argmax(logits, dim=-1).item()
         probabilities = self.compute_probabilities(logits=logits)
 
+        predicted_label = Config.LABEL_NAME[predicted_id]
+        confidence = max(probabilities.values())
+        logger.info(
+            "Prediction completed | label=%s | confidence=%.4f",
+            predicted_label,
+            confidence,
+        )
+
         result = PredictionResult(
             text=text,
-            predicted_label=Config.LABEL_NAME[predicted_id],
+            predicted_label=predicted_label,
             predicted_id=predicted_id,
-            confidence=max(probabilities.values()),
+            confidence=confidence,
             probabilities=probabilities,
         )
 

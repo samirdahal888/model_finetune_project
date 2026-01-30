@@ -55,3 +55,7 @@ class Config:
     API_PORT: int = _server_config.api_port
     API_URL: str = _server_config.api_url
     STREAMLIT_PORT: int = _server_config.streamlit_port
+
+    # wandb settings
+    PROJECT = "distilbert-ag-news"
+    NAME = _model_config.name
