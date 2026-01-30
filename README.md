@@ -9,8 +9,17 @@ contains 76000  test data .
 ## CLASS NAME INFORMATION
 1: `World` 2: `Sports` 3: `Business` 4: `Sci/Tech`
 
+# FastApi UI
+![alt text](image.png)
+
+# /predict endpoint 
+![alt text](image-1.png)
+
+# Streamlit frontend
+![alt text](image-2.png)
 
 ## Setup Instructions
+
 
 ### 1.  Prerequisites
 
@@ -30,7 +39,7 @@ cd model_finetune_project
 ```
 
 ## 4. Create Virtual Environment & Install Dependencies.
-```bash 
+```bash predicted_id
 uv venv
 source .venv/bin/activate
 uv pip install -e .
@@ -39,6 +48,16 @@ uv pip install -e .
 ## 5. python script/train.py
 ```bash 
 python script/train.py
+```
+
+## 6. Run api 
+```bash 
+python -m api.main
+```
+
+### After running the api you can start streamlit frontend
+```bash
+streamlit run streamlit_app.py
 ```
 
 
