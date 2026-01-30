@@ -4,6 +4,9 @@ from src.trainer import ModelTrainer
 
 
 def create_training_pipeline():
+    """
+    Execute the complete training pipeline.
+    """
     dataloader = DataLoader()
 
     data = dataloader.prepare_dataset()
@@ -15,7 +18,6 @@ def create_training_pipeline():
     trainer = ModelTrainer(model, tokenizer, data)
 
     trainer.train()
-    
 
 
 if __name__ == "__main__":
