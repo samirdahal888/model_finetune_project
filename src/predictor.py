@@ -22,6 +22,7 @@ class PredictionResult:
             "text": self.text[:100] + "..." if len(self.text) > 100 else self.text,
             "predicted_label": self.predicted_label,
             "confidence": self.confidence,
+            "predicted_id": self.predicted_id,
             "probabilities": self.probabilities,
         }
 
